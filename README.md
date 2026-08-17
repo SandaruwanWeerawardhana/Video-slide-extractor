@@ -1,6 +1,10 @@
+<div align="center">
+
 # Video Slide Extractor
 
 A command-line tool that pulls one clean screenshot per presentation slide out of a lecture/screencast recording — automatically, without manual scrubbing.
+
+</div>
 
 ## Overview
 
