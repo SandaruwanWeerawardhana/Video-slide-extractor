@@ -1,0 +1,12 @@
+# Core dependencies for extract_slides.py
+opencv-python>=4.8.0     # video decoding, resizing, gaussian filtering
+numpy>=1.24.0            # SSIM maths
+Pillow>=10.0.0           # PNG metadata (timestamp embedded in each screenshot)
+
+# Notes
+# -----
+# * On a headless server you can swap opencv-python for opencv-python-headless;
+#   this tool never opens a GUI window.
+# * FFmpeg is NOT required. It is only useful if OpenCV refuses a codec, in
+#   which case re-encode once:
+#       ffmpeg -i lecture.mkv -c:v libx264 -an lecture.mp4
