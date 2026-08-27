@@ -6,30 +6,6 @@ A command-line tool that pulls one clean screenshot per presentation slide out o
 
 </div>
 
-## Overview
-
-Recorded lectures and webinars often mix a slide deck with a talking head, a moving cursor, and video-compression noise. Manually scrubbing through the recording to grab a screenshot of each slide is slow and error-prone.
-
-`extract_slides.py` samples a video a few times per second, compares consecutive frames using structural similarity (SSIM), and writes a screenshot to disk only once a *new* picture has been visibly stable for a moment — skipping transition frames, fades, and duplicate slides, and merging multi-step "build" animations (e.g. PowerPoint bullet-by-bullet reveals) into a single final screenshot.
-
-**Who it's for:** students, teachers, and anyone archiving lecture recordings, webinars, or screen-shared meetings who wants a clean set of slide images without watching the whole video.
-
-**Main objectives:**
-- Detect real slide changes while ignoring codec noise, webcam overlays, and moving cursors/progress bars.
-- Avoid duplicate screenshots from fades and re-appearing slides.
-- Produce timestamped, ordered output with machine-readable metadata (JSON) and a human-readable summary (TXT).
-
-## Features
-
-### Slide Detection
-- SSIM-based structural comparison (immune to compression artifacts, brightness drift)
-- Information-weighted similarity — text/shape regions matter more than empty background
-- Two-state machine (`stable` / `transition`) that waits for the picture to settle before capturing
-- Automatic noise-floor estimation per video (adapts the "stable" threshold to each recording's own grain)
-- Automatic motion masking — learns and down-weights permanently-moving regions (webcam box, clock, progress bar)
-- Build/animation merging — a slide that reappears too soon after the last capture replaces it instead of adding a duplicate
-- Duplicate guard for fade-out/fade-in back to the same slide
-
 ### Region of Interest
 - `--crop X,Y,WIDTH,HEIGHT` to restrict detection to part of the frame (e.g. ignore a webcam corner)
 - Optional `--crop-output` to also crop the saved screenshots
@@ -45,13 +21,6 @@ Recorded lectures and webinars often mix a slide deck with a talking head, a mov
 - `slides.json` (machine-readable) and `slides.txt` (human-readable) summary written per run
 - Progress bar with percent, elapsed time, processing speed, and ETA
 
-### Debugging
-- `--debug` mode: verbose logging plus before/after/diff images and a per-sample `similarity.csv` for tuning thresholds
-
-### Configuration
-- All parameters tunable via CLI flags or a JSON config file (`--config`)
-- `--write-config` to generate an example config file
-- Config validation with readable error messages; common misconfigurations (e.g. threshold ordering) are auto-corrected
 
 ## Tech Stack
 
@@ -66,16 +35,6 @@ Recorded lectures and webinars often mix a slide deck with a talking head, a mov
 | Deployment | Not implemented (local script) |
 
 This is a standalone script-based tool — there is no frontend, backend server, database, or API in this project.
-
-## Architecture
-
-Layered, single-responsibility modules with no framework — plain Python classes and dataclasses:
-
-- **`extract_slides.py`** — CLI entry point. Parses arguments, builds `Config`, drives the extraction loop, writes output files (`SlideWriter`, `DebugRecorder`).
-- **`video.py`** — `VideoSource`: wraps `cv2.VideoCapture`, exposes a sequential frame-sampling iterator and video metadata (`VideoInfo`).
-- **`detector.py`** — `SlideDetector`: the core state machine. Computes SSIM, tracks `MotionMask` and `NoiseFloor`, decides when a slide has changed and settled, emits `SlideEvent`s.
-- **`config.py`** — `Config` dataclass holding every tunable parameter, with JSON load/validate support.
-- **`utils.py`** — shared helpers: time formatting, safe image writing, directory checks, logging setup, terminal progress display.
 
 **Data flow:**
 
@@ -170,6 +129,28 @@ Not implemented. This project has no `.env` file and reads no environment variab
 
 ## Running the Project
 
+### Windows Command Prompt (cmd)
+
+Open **Command Prompt** and run:
+
+```cmd
+cd /d D:\Project\Personal\video-slide-extractor
+.venv\Scripts\activate.bat
+python extract_slides.py "C:\path\to\your-video.mp4"
+```
+
+Example:
+
+```cmd
+cd /d D:\Project\Personal\video-slide-extractor
+.venv\Scripts\activate.bat
+python extract_slides.py "C:\Videos\class.mp4" --output slides
+```
+
+The extracted screenshots are saved in `output\` by default. If you use `--output slides`, they are saved in `slides\`.
+
+### PowerShell / macOS / Linux
+
 ```bash
 # Basic usage
 python extract_slides.py lecture.mp4
@@ -193,6 +174,24 @@ python extract_slides.py --version
 ```
 
 **Build / Test / Lint / Formatting:** Not implemented — no `setup.py`/`pyproject.toml`, test suite, linter, or formatter config exists in this project.
+
+## Stopping the Project
+
+This is a command-line script, not a server. It stops automatically when the extraction finishes.
+
+To stop it while it is running, press:
+
+```cmd
+Ctrl + C
+```
+
+To leave the Python virtual environment in **Command Prompt**, run:
+
+```cmd
+.venv\Scripts\deactivate.bat
+```
+
+If that command does not work, close the Command Prompt window. The project is not still running after the script exits.
 
 ## Screenshots
 
