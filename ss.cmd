@@ -62,4 +62,4 @@ if not exist "%VIDEO%" (
 )
 
 :run_extractor
-"%PYTHON%" "%PROJECT_DIR%extract_slides.py" "%VIDEO%" --output "%PROJECT_DIR%slides" %EXTRA_ARGS%
+"%PYTHON%" "%PROJECT_DIR%extract_slides.py" "%VIDEO%" --output "%PROJECT_DIR%slides" --format jpg %EXTRA_ARGS%
