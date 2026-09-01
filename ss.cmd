@@ -4,6 +4,7 @@ setlocal
 set "PROJECT_DIR=%~dp0"
 set "PYTHON=%PROJECT_DIR%.venv\Scripts\python.exe"
 set "INPUT_DIR=%PROJECT_DIR%input"
+set "EXTRA_ARGS="
 
 if "%~1"=="" (
     set "VIDEO="
@@ -14,6 +15,14 @@ if "%~1"=="" (
     set "VIDEO=%~1"
     shift
 )
+
+:collect_args
+if "%~1"=="" goto after_collect_args
+set EXTRA_ARGS=%EXTRA_ARGS% "%~1"
+shift
+goto collect_args
+
+:after_collect_args
 
 if not exist "%PYTHON%" (
     echo Python virtual environment not found:
@@ -49,4 +58,4 @@ if not exist "%VIDEO%" (
     exit /b 1
 )
 
-"%PYTHON%" "%PROJECT_DIR%extract_slides.py" "%VIDEO%" --output "%PROJECT_DIR%slides" %*
+"%PYTHON%" "%PROJECT_DIR%extract_slides.py" "%VIDEO%" --output "%PROJECT_DIR%slides" %EXTRA_ARGS%
