@@ -3,106 +3,7 @@
 # Video Slide Extractor
 
 A command-line tool that pulls one clean screenshot per presentation slide out of a lecture/screencast recording — automatically, without manual scrubbing.
-
-</div>
-
-### Region of Interest
-- `--crop X,Y,WIDTH,HEIGHT` to restrict detection to part of the frame (e.g. ignore a webcam corner)
-- Optional `--crop-output` to also crop the saved screenshots
-
-### Video Handling
-- Sequential, low-memory reading (frame-skipping via `cap.grab()`, not full decode) — a multi-hour 1080p video costs megabytes, not gigabytes
-- `--start` / `--end` trimming with `SS`, `MM:SS`, or `HH:MM:SS` time formats
-- Robust handling of unreliable container metadata (FPS/frame-count fallbacks)
-
-### Output
-- PNG (default) or JPEG output, with configurable JPEG quality
-- PNG metadata embedding (source file, slide number, timestamp) via Pillow, when installed
-- `slides.json` (machine-readable) and `slides.txt` (human-readable) summary written per run
-- Progress bar with percent, elapsed time, processing speed, and ETA
-
-
-## Tech Stack
-
-| Category | Technology |
-|----------|------------|
-| Language | Python 3 (uses `from __future__ import annotations`, PEP 604 syntax) |
-| Video decoding | OpenCV (`opencv-python`) |
-| Numerical processing | NumPy |
-| Image metadata | Pillow (optional, PNG `tEXt` chunks) |
-| Interface | `argparse` CLI (no web/GUI layer) |
-| Testing | Not implemented |
-| Deployment | Not implemented (local script) |
-
-This is a standalone script-based tool — there is no frontend, backend server, database, or API in this project.
-
-**Data flow:**
-
-```
-video file
-   │
-   ▼
-VideoSource.iter_samples()  ──►  sampled (timestamp, frame_index, frame)
-   │
-   ▼
-SlideDetector.process()  ──►  SSIM vs reference/candidate, motion mask, noise floor
-   │
-   ▼  (0 or 1 SlideEvent per sample)
-SlideWriter.add()  ──►  screenshot written to disk
-   │
-   ▼
-SlideWriter.write_metadata()  ──►  slides.json + slides.txt
-```
-
-## Folder Structure
-
-```
-video-slide-extractor/
-├── extract_slides.py   # CLI entry point, output writers, main extraction loop
-├── detector.py          # SSIM math, motion masking, noise floor, slide state machine
-├── video.py              # OpenCV video reader / frame sampler
-├── config.py             # Config dataclass, validation, JSON load/save
-├── utils.py               # time/image/logging/progress helpers
-├── requirements.txt       # opencv-python, numpy, Pillow
-└── output/                # default destination for extracted slides (created at runtime)
-```
-
-There are no `src/`, `controllers/`, `models/`, or `routes/` directories — the project is four flat Python modules plus the CLI script.
-
-## Database
-
-Not implemented. This tool does not use a database; results are written directly to the filesystem (`output/` directory) as image files plus `slides.json` / `slides.txt`.
-
-## API Documentation
-
-Not implemented. This is a CLI-only tool with no HTTP server or API endpoints.
-
-**CLI interface** (in place of an API table):
-
-| Flag | Description | Required |
-|------|-------------|----------|
-| `video` (positional) | Path to the video file | Yes (unless `--write-config`) |
-| `-o, --output` | Output directory for screenshots (default: `output`) | No |
-| `-r, --sample-rate` | Frames analysed per second (default: `2.0`) | No |
-| `-t, --threshold` | Change-detection SSIM threshold (default: `0.90`) | No |
-| `--min-slide-duration` | Minimum seconds before a new picture counts as its own slide (default: `2.0`) | No |
-| `-f, --format` | Output format: `png` or `jpg` (default: `png`) | No |
-| `--stability-threshold` | SSIM above which consecutive frames are "not moving" (default: `0.985`) | No |
-| `--stability-duration` | Seconds a picture must hold still before capture (default: `1.0`) | No |
-| `--duplicate-threshold` | SSIM above which a candidate is dropped as duplicate (default: `0.98`) | No |
-| `--crop` | Detection region `X,Y,WIDTH,HEIGHT` | No |
-| `--crop-output` | Also crop saved screenshots | No |
-| `--no-auto-mask` | Disable automatic motion masking | No |
-| `--work-width` | Downscale width used for comparison (default: `320`) | No |
-| `--start` | Skip video before this time | No |
-| `--end` | Stop at this time | No |
-| `--jpeg-quality` | JPEG quality 1–100 (default: `95`) | No |
-| `--config` | JSON file with settings | No |
-| `--write-config` | Write an example config file and exit | No |
-| `--debug` | Verbose logging + before/after/diff debug images | No |
-| `--debug-dir` | Debug output directory (default: `debug`) | No |
-| `-q, --quiet` | Warnings/errors only | No |
-| `--version` | Print version and exit | No |
+`
 
 ## Installation
 
@@ -123,9 +24,6 @@ Not implemented. This is a CLI-only tool with no HTTP server or API endpoints.
    ```
 4. No environment variables, database migrations, or seed data are required — this is a stateless CLI tool.
 
-## Environment Variables
-
-Not implemented. This project has no `.env` file and reads no environment variables; all configuration is via CLI flags or a JSON config file (see `EXAMPLE_CONFIG` in [config.py](config.py)).
 
 ## Running the Project
 
@@ -135,19 +33,24 @@ Open **Command Prompt** and run:
 
 ```cmd
 cd /d D:\Project\Personal\video-slide-extractor
-.venv\Scripts\activate.bat
-python extract_slides.py "C:\path\to\your-video.mp4"
+ss "C:\path\to\your-video.mp4"
 ```
 
 Example:
 
 ```cmd
 cd /d D:\Project\Personal\video-slide-extractor
-.venv\Scripts\activate.bat
-python extract_slides.py "C:\Videos\class.mp4" --output slides
+ss "C:\Users\weera\OneDrive\Desktop\OS\w1.mp4"
 ```
 
-The extracted screenshots are saved in `output\` by default. If you use `--output slides`, they are saved in `slides\`.
+The extracted screenshots are saved in `slides\`.
+
+Manual fallback:
+
+```cmd
+cd /d D:\Project\Personal\video-slide-extractor
+.venv\Scripts\python.exe extract_slides.py "C:\path\to\your-video.mp4" --output slides
+```
 
 ### PowerShell / macOS / Linux
 
