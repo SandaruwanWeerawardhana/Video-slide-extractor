@@ -45,6 +45,9 @@ if not defined VIDEO (
     exit /b 2
 )
 
+if /i "%VIDEO:~0,7%"=="http://" goto run_extractor
+if /i "%VIDEO:~0,8%"=="https://" goto run_extractor
+
 if not exist "%VIDEO%" if exist "%INPUT_DIR%\%VIDEO%" set "VIDEO=%INPUT_DIR%\%VIDEO%"
 
 if not exist "%VIDEO%" (
@@ -58,4 +61,5 @@ if not exist "%VIDEO%" (
     exit /b 1
 )
 
+:run_extractor
 "%PYTHON%" "%PROJECT_DIR%extract_slides.py" "%VIDEO%" --output "%PROJECT_DIR%slides" %EXTRA_ARGS%

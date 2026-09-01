@@ -16,7 +16,10 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 import sys
+import urllib.parse
+import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional
@@ -264,6 +267,44 @@ class Result:
     aborted: int = 0
     interrupted: bool = False
     output_dir: Path = field(default_factory=Path)
+
+
+def is_url(value: str) -> bool:
+    parsed = urllib.parse.urlparse(value)
+    return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+
+
+def filename_from_url(url: str) -> str:
+    parsed = urllib.parse.urlparse(url)
+    name = Path(urllib.parse.unquote(parsed.path)).name or "downloaded-video.mp4"
+    name = re.sub(r"[^A-Za-z0-9._-]+", "_", name)
+    return name if Path(name).suffix else f"{name}.mp4"
+
+
+def download_video(url: str, directory: Path) -> Path:
+    target_dir = ensure_directory(directory, purpose="download")
+    target = target_dir / filename_from_url(url)
+
+    if target.exists() and target.stat().st_size > 0:
+        print(f"Using downloaded video: {target}")
+        return target
+
+    print(f"Downloading video: {url}")
+    print(f"Saving to: {target}")
+    try:
+        request = urllib.request.Request(url, headers={"User-Agent": "VideoSlideExtractor/1.0"})
+        with urllib.request.urlopen(request, timeout=30) as response, target.open("wb") as handle:
+            while True:
+                chunk = response.read(1024 * 1024)
+                if not chunk:
+                    break
+                handle.write(chunk)
+    except OSError as exc:
+        raise VideoError(f"Could not download video URL: {exc}")
+
+    if target.stat().st_size == 0:
+        raise VideoError(f"Downloaded video is empty: {target}")
+    return target
 
 
 def extract(video_path: Path, config: Config) -> Result:
@@ -545,7 +586,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 2
 
     try:
-        result = extract(Path(args.video), config)
+        video_path = download_video(args.video, Path("input") / "downloads") if is_url(args.video) else Path(args.video)
+        result = extract(video_path, config)
     except SlideExtractorError as exc:
         sys.stderr.write(f"\nError: {exc}\n")
         return 1

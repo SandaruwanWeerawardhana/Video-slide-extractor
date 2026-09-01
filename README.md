@@ -43,6 +43,15 @@ cd /d D:\Project\Personal\video-slide-extractor
 ss "C:\Users\weera\OneDrive\Desktop\OS\w1.mp4"
 ```
 
+Browser/direct MP4 link example:
+
+```cmd
+cd /d D:\Project\Personal\video-slide-extractor
+ss "https://example.com/video.mp4"
+```
+
+The MP4 link is downloaded into `input\downloads\`, then screenshots are extracted.
+
 The extracted screenshots are saved in `slides\`.
 
 Manual fallback:
