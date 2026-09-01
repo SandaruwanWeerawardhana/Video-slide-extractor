@@ -43,6 +43,13 @@ cd /d D:\Project\Personal\video-slide-extractor
 ss "C:\Users\weera\OneDrive\Desktop\OS\w1.mp4"
 ```
 
+Change save folder and image format:
+
+```cmd
+cd /d D:\Project\Personal\video-slide-extractor
+ss "C:\Users\weera\OneDrive\Desktop\OS\2.mp4" "C:\Users\weera\OneDrive\Desktop\OS\slides-output" jpg
+```
+
 Browser/direct MP4 link example:
 
 ```cmd

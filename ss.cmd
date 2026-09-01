@@ -4,6 +4,8 @@ setlocal
 set "PROJECT_DIR=%~dp0"
 set "PYTHON=%PROJECT_DIR%.venv\Scripts\python.exe"
 set "INPUT_DIR=%PROJECT_DIR%input"
+set "OUTPUT_DIR=%PROJECT_DIR%slides"
+set "IMAGE_FORMAT=jpg"
 set "EXTRA_ARGS="
 
 if "%~1"=="" (
@@ -18,9 +20,31 @@ if "%~1"=="" (
 
 :collect_args
 if "%~1"=="" goto after_collect_args
+if /i "%~1"=="png" goto set_format_positional
+if /i "%~1"=="jpg" goto set_format_positional
+if /i "%~1"=="jpeg" goto set_format_positional
+set "ARG=%~1"
+if "%ARG:~0,1%"=="-" goto collect_extra_args
+goto set_output_positional
+
+:set_format_positional
+set "IMAGE_FORMAT=%~1"
+shift
+goto collect_extra_args
+
+:set_output_positional
+set "OUTPUT_DIR=%~1"
+shift
+if /i "%~1"=="png" goto set_format_positional
+if /i "%~1"=="jpg" goto set_format_positional
+if /i "%~1"=="jpeg" goto set_format_positional
+goto collect_extra_args
+
+:collect_extra_args
+if "%~1"=="" goto after_collect_args
 set EXTRA_ARGS=%EXTRA_ARGS% "%~1"
 shift
-goto collect_args
+goto collect_extra_args
 
 :after_collect_args
 
@@ -37,7 +61,8 @@ if not exist "%PYTHON%" (
 if not defined VIDEO (
     echo Usage:
     echo   ss w1.mp4
-    echo   ss "C:\path\to\your-video.mp4"
+    echo   ss "C:\path\to\your-video.mp4" "C:\path\to\save-slides" jpg
+    echo   ss "https://example.com/video.mp4" "C:\path\to\save-slides" png
     echo.
     echo Shortest way:
     echo   1. Put your video inside: %INPUT_DIR%
@@ -62,4 +87,4 @@ if not exist "%VIDEO%" (
 )
 
 :run_extractor
-"%PYTHON%" "%PROJECT_DIR%extract_slides.py" "%VIDEO%" --output "%PROJECT_DIR%slides" --format jpg %EXTRA_ARGS%
+"%PYTHON%" "%PROJECT_DIR%extract_slides.py" "%VIDEO%" --output "%OUTPUT_DIR%" --format "%IMAGE_FORMAT%" %EXTRA_ARGS%
