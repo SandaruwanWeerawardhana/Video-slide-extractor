@@ -65,7 +65,7 @@ Browser / H5P (Moodle) fallback:
 
 ```cmd
 set MOODLE_SESSION=your_session_id_here
-.venv\Scripts\python.exe capture_browser_video.py "https://online.codl.lk/mod/hvp/embed.php?id=112707" --output browser-slides --duration 0 --playback-rate 4 --format jpg -r 2
+.venv\Scripts\python.exe capture_browser_video.py "https://online.codl.lk/mod/hvp/embed.php?id=112707" --output browser-slides --manual-delay 0 --duration 0 --playback-rate 4 --format jpg -r 2
 ```
 
 Pass the H5P page URL, not the video file URL. The tool reads the page's
@@ -106,7 +106,7 @@ page is hiding, and nothing else:
 | --- | --- |
 | `--playback-rate 4` | Play at 4x while capturing, so a 40-minute lecture takes about 10 minutes. Above 4, raise `-r` as well or short slides can be missed. |
 | `--duration 0` | Capture until the video ends or `Ctrl + C` (the default). |
-| `--manual-delay 90` | Seconds to log in or press Play in the window before capture starts. |
+| `--manual-delay 0` | Start capturing immediately. The default is 20 seconds, which only exists so you can log in or press Play by hand; with `MOODLE_SESSION` set there is nothing to click, so 0 just saves the wait. Raise it (`--manual-delay 90`) when you do need to log in inside the window. |
 | `--session VALUE` | Pass the cookie inline instead of via `MOODLE_SESSION`. |
 | `--print-video-url` | Resolve the page to its MP4 URL, print it and exit. |
 | `--no-resolve` | Screenshot the page itself instead of the MP4 behind it. |

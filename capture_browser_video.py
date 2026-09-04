@@ -563,6 +563,11 @@ def is_browser_closed_error(exc: Exception) -> bool:
         "target page, context or browser has been closed" in message
         or "browser has been closed" in message
         or "page has been closed" in message
+        # A crashed tab (out of memory, GPU fault) is equally unrecoverable,
+        # but the slides already written to disk are still good and must be
+        # kept rather than discarded with an exception.
+        or "target crashed" in message
+        or "page crashed" in message
     )
 
 
