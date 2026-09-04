@@ -250,7 +250,10 @@ class DetectorStats:
     transitions_aborted: int = 0
     duplicates_skipped: int = 0
     builds_merged: int = 0
-    events: List[SlideEvent] = field(default_factory=list)
+    #: Number of committed events. The events themselves are deliberately NOT
+    #: retained: each one carries a full resolution frame (about 3.4 MB at
+    #: 1280x900), so keeping them exhausted memory on long captures.
+    committed: int = 0
 
 
 STATE_STABLE = "stable"
@@ -513,7 +516,7 @@ class SlideDetector:
             self.last_commit_appeared = candidate.appeared_at
         self.candidate = None
         self.state = STATE_STABLE
-        self.stats.events.append(event)
+        self.stats.committed += 1
         return event
 
     def finalize(self) -> List[SlideEvent]:

@@ -61,6 +61,68 @@ The MP4 link is downloaded into `input\downloads\`, then screenshots are extract
 
 The extracted screenshots are saved in `slides\`.
 
+Browser / H5P (Moodle) fallback:
+
+```cmd
+set MOODLE_SESSION=your_session_id_here
+.venv\Scripts\python.exe capture_browser_video.py "https://online.codl.lk/mod/hvp/embed.php?id=112707" --output browser-slides --duration 0 --playback-rate 4 --format jpg -r 2
+```
+
+Pass the H5P page URL, not the video file URL. The tool reads the page's
+`H5PIntegration` data, finds the real MP4 behind the player and captures that
+directly, so no player chrome or progress bar ends up in the screenshots.
+Capture stops on its own when the video ends.
+
+#### What is the session ID?
+
+`MOODLE_SESSION` is the value of the **`MoodleSession` cookie** from your
+browser. It is what proves to the server that you are logged in. Without it a
+protected lesson returns *"You do not have access to this content"* and nothing
+is captured.
+
+To get it in Chrome or Edge:
+
+1. Log in to the Moodle site normally.
+2. Press `F12` to open DevTools.
+3. Go to **Application** -> **Storage** -> **Cookies** -> the site's address.
+4. Find the row named `MoodleSession` and copy its **Value**
+   (a long string such as `m0z5a6n4umqt1t79imvd99spvi`).
+
+Treat that value like a password: anyone holding it is logged in as you. It
+expires when you log out, so a new one is needed after logging out. Prefer the
+environment variable over `--session`, which leaves the cookie in your command
+history.
+
+Check that the login works before a long capture - this prints the MP4 URL the
+page is hiding, and nothing else:
+
+```cmd
+.venv\Scripts\python.exe capture_browser_video.py "https://online.codl.lk/mod/hvp/embed.php?id=112707" --print-video-url
+```
+
+#### Useful flags
+
+| Flag | Meaning |
+| --- | --- |
+| `--playback-rate 4` | Play at 4x while capturing, so a 40-minute lecture takes about 10 minutes. Above 4, raise `-r` as well or short slides can be missed. |
+| `--duration 0` | Capture until the video ends or `Ctrl + C` (the default). |
+| `--manual-delay 90` | Seconds to log in or press Play in the window before capture starts. |
+| `--session VALUE` | Pass the cookie inline instead of via `MOODLE_SESSION`. |
+| `--print-video-url` | Resolve the page to its MP4 URL, print it and exit. |
+| `--no-resolve` | Screenshot the page itself instead of the MP4 behind it. |
+| `--headless` | Run without a visible browser window. |
+| `--click-center` | Click the middle of the player after the delay, for players that need a click to start. |
+
+Best quality is still download-then-extract, because it decodes real video
+frames instead of screenshots:
+
+```cmd
+.venv\Scripts\python.exe capture_browser_video.py "https://online.codl.lk/mod/hvp/embed.php?id=112707" --print-video-url > url.txt
+set /p VURL=<url.txt
+curl -L -o input\week2.mp4 -H "Cookie: MoodleSession=%MOODLE_SESSION%" "%VURL%"
+ss week2.mp4 slides jpg
+```
+
 Manual fallback:
 
 ```cmd
