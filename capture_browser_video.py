@@ -473,6 +473,10 @@ def start_playback(page, rate: float = 1.0) -> None:
     script = """(rate) => {
         for (const v of document.querySelectorAll('video')) {
             try {
+                // Never restart a finished video: this runs periodically to
+                // re-apply the speed-up, and calling play() on an ended
+                // player rewinds it, so the capture would loop forever.
+                if (v.ended) continue;
                 v.muted = true;
                 if (rate && v.playbackRate !== rate) v.playbackRate = rate;
                 const p = v.play(); if (p) p.catch(() => {});
