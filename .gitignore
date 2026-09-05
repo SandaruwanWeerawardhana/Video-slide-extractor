@@ -1,2 +1,9 @@
 slides/
 browser-profile/
+browser-slides/
+input/
+output/
+__pycache__/
+
+# Holds the MoodleSession cookie: a live login, never commit it.
+session.cmd
