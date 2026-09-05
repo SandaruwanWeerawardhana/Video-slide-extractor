@@ -50,6 +50,26 @@ cd /d D:\Project\Personal\video-slide-extractor
 ss "C:\Users\weera\OneDrive\Desktop\OS\2.mp4" "C:\Users\weera\OneDrive\Desktop\OS\slides-output" jpg
 ```
 
+Argument order is `ss <video> [output-folder] [png|jpg] [extra flags...]`. Any
+argument starting with `-` (and everything after it) is forwarded verbatim to
+`extract_slides.py`, so all of its flags work through `ss`:
+
+```cmd
+cd /d D:\Project\Personal\video-slide-extractor
+
+:: crop the detection region to the top-left 1920x900 (ignore a webcam strip)
+ss w1.mp4 slides jpg --crop 0,0,1920,900
+
+:: also crop the saved screenshots, not just detection
+ss w1.mp4 slides jpg --crop 0,0,1920,900 --crop-output
+
+:: limit to a time range and loosen the threshold
+ss w1.mp4 slides jpg --start 00:01:30 --end 00:42:00 --threshold 0.90
+```
+
+`--crop X,Y,W,H` is in pixels of the original video, origin top-left. Put the
+output folder and format before the first `-flag` or they are read as flags.
+
 Browser/direct MP4 link example:
 
 ```cmd
@@ -61,17 +81,43 @@ The MP4 link is downloaded into `input\downloads\`, then screenshots are extract
 
 The extracted screenshots are saved in `slides\`.
 
-Browser / H5P (Moodle) fallback:
+Browser / H5P (Moodle) fallback — the `bs` command:
 
 ```cmd
-set MOODLE_SESSION=your_session_id_here
-.venv\Scripts\python.exe capture_browser_video.py "https://online.codl.lk/mod/hvp/embed.php?id=112707" --output browser-slides --manual-delay 0 --duration 0 --playback-rate 4 --format jpg -r 2
+cd /d D:\Project\Personal\video-slide-extractor
+
+:: capture a lesson into browser-slides\
+bs "https://online.codl.lk/mod/hvp/embed.php?id=112707"
+
+:: bare word -> browser-slides\w5 ; full path -> used as-is ; png instead of jpg
+bs "https://online.codl.lk/mod/hvp/embed.php?id=112707" w5 png
+
+:: any -flag (and everything after) is passed straight to capture_browser_video.py
+bs "https://online.codl.lk/mod/hvp/embed.php?id=112707" w5 --headless
 ```
+
+`bs` wraps `capture_browser_video.py` with defaults tuned for lecture slides
+(`--playback-rate 5`, `-r 3`, `--stability-duration 0.5`, `--min-slide-duration 1`,
+`--duration 0`, `--manual-delay 0`, JPG). Argument order is
+`bs <url> [folder|path] [png|jpg] [extra flags...]`.
 
 Pass the H5P page URL, not the video file URL. The tool reads the page's
 `H5PIntegration` data, finds the real MP4 behind the player and captures that
 directly, so no player chrome or progress bar ends up in the screenshots.
 Capture stops on its own when the video ends.
+
+#### session.cmd — save the cookie and URL once
+
+`bs` calls `session.cmd` (gitignored) at startup if it exists. Put the login
+cookie there so it is never retyped, and optionally a default URL used when `bs`
+is run with no URL argument:
+
+```cmd
+set "MOODLE_SESSION=your_cookie_here"
+set "VIDEO_URL=https://online.codl.lk/mod/hvp/embed.php?id=112707"
+```
+
+With `session.cmd` in place, `bs` with no arguments captures `VIDEO_URL`.
 
 #### What is the session ID?
 
