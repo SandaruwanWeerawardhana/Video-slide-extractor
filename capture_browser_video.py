@@ -627,8 +627,12 @@ notes:
         help="capture length; 0 means until Ctrl+C (default: 0)",
     )
     parser.add_argument(
-        "--manual-delay", type=non_negative_float, default=20.0, metavar="SECONDS",
-        help="time to log in or press Play before capture starts (default: 20)",
+        "--manual-delay", type=non_negative_float, default=0.0, metavar="SECONDS",
+        help=(
+            "time to log in or press Play before capture starts (default: 0). "
+            "Only needed when logging in by hand; with a session cookie there "
+            "is nothing to click, so the wait is dead time"
+        ),
     )
     parser.add_argument(
         "--viewport", type=parse_viewport, default=(1280, 900), metavar="WIDTHxHEIGHT",
